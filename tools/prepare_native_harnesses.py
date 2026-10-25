@@ -125,7 +125,9 @@ def validate(doc, name):
     if doc.get('schema_version') != 1 or doc.get('id') != name:
         raise ValueError(f'{name}: descriptor id must match the file name')
     probe = doc.get('probe')
-    if not (probe in BUILTIN_PROBES or probe is None or isinstance(probe, dict) and isinstance(probe.get('tool'), str)):
+    if not (probe is None
+            or isinstance(probe, str) and probe in BUILTIN_PROBES
+            or isinstance(probe, dict) and isinstance(probe.get('tool'), str)):
         raise ValueError(f'{name}: unknown probe')
     for key, value in doc.get('targets', {}).items():
         for asset, record in value.get('downloads', {}).items():

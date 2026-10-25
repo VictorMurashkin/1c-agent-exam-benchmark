@@ -29,6 +29,23 @@ def one_harness(root):
 
 
 class Descriptors(unittest.TestCase):
+    def test_generic_mcp_probe_is_supported(self):
+        probe = {'tool': 'metadata_summary', 'arguments': {'kind': 'configuration'}, 'expect': 'Configuration.xml'}
+        doc = {'schema_version': 1, 'id': 'x', 'probe': probe, 'targets': {}}
+        self.assertEqual(prepare.validate(doc, 'x')['probe'], probe)
+
+    def test_builtin_and_absent_probes_are_supported(self):
+        for probe in (*prepare.BUILTIN_PROBES, None):
+            with self.subTest(probe=probe):
+                doc = {'schema_version': 1, 'id': 'x', 'probe': probe, 'targets': {}}
+                prepare.validate(doc, 'x')
+        prepare.validate({'schema_version': 1, 'id': 'x', 'targets': {}}, 'x')
+
+    def test_invalid_probes_are_refused(self):
+        for probe in ([], {}, {'tool': 1}, 'unknown', 3):
+            with self.subTest(probe=probe), self.assertRaisesRegex(ValueError, 'unknown probe'):
+                prepare.validate({'schema_version': 1, 'id': 'x', 'probe': probe, 'targets': {}}, 'x')
+
     def test_shipped_descriptors_are_valid_and_reference_their_downloads(self):
         docs = prepare.catalogue()
         self.assertIn('unica-0.14.0-rc.1', docs)
